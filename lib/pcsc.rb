@@ -219,7 +219,8 @@ module PCSC
       @scrc ||= LIB['SCardReleaseContext', 'LL']
       r,rs = @scrc.call(ctx)
       r &= 0xffffffff
-      raise Errors::ERRS[r] unless r == Errors::SCARD_S_SUCCESS # TODO error mappings
+      puts "%x" % r
+      raise Errors::ERRS[r].to_s unless r == Errors::SCARD_S_SUCCESS # TODO error mappings
     end
 
     def Lib.sCardIsValidContext ctx
@@ -329,8 +330,9 @@ end # module PCSC
 
 if $0 == __FILE__
   ctx = PCSC::Context.new
-  puts ctx.is_valid == 0
+  #puts ctx.is_valid == 0
   puts ctx.list_readers
+  ctx.release
   card = ctx.card_connect 
   puts card
   puts card.status[2].size

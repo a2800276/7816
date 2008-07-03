@@ -7,11 +7,11 @@ require "rubygems"
 # Some definitions that you'll need to edit in case you reuse this
 # Rakefile for your own project.
 
-SHORTNAME	='pcsc'	# this should be the rubyforge project name
+SHORTNAME	='7816'	# this should be the rubyforge project name
 DESC		='ruby smartcard access'
-PKG_VERSION 	='0.0.1'
+PKG_VERSION 	='0.0.2'
 LONG_DESC	= <<END_DESC
-	This is a short project description.
+  Utilities to provided ISO 7816 smartcard functionality	
 END_DESC
 RUBYFORGE_USER	='a2800276'
 
@@ -78,6 +78,7 @@ spec = Gem::Specification.new do |s|
 	s.files = PKG_FILES
 	s.requirements << "none"
 	s.require_path = 'lib'
+  s.add_dependency("hexy")
 	s.description = LONG_DESC
 end
 
@@ -116,8 +117,20 @@ end
 Rake::TestTask.new do |t| 
 	t.libs << "test" 
 	t.libs << "lib" 
+  t.ruby_opts = ["-rubygems"]
 	t.test_files = FileList['test/*.rb'] 
 	t.verbose = true 
+end
+
+
+desc "generate iso apdu command classes"
+task :iso_apdu do
+  ruby "-rubygems build/create_apdu.rb -i lib/apdu.spec -o lib/apdu_generated.rb -s lib/apdu_generated_impl.rb"
+end
+
+desc "delete generated apdu classes"
+task :iso_apdu_clean do
+  File.delete "lib/apdu_generated.rb" if File.exist? "lib/apdu_generated.rb"
 end
 
 
