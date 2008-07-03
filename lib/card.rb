@@ -100,7 +100,7 @@ module Card
         sleep SLEEP_TIME
         flags = 0
       end
-      puts "Waiting to receive: #{le}"
+      #puts "Waiting to receive: #{le}"
       @socket.recv(le, flags)
     end
      
