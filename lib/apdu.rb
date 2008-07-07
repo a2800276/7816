@@ -153,6 +153,10 @@ class Response
     @sw2 = data[-1,1]
 
   end
+  
+  def status
+    b2s([@sw1]<<@sw2)
+  end
 
   def normal?
     (@sw1 == "\x90" && @sw2 == "\x00") || @sw1 == "\x61"
