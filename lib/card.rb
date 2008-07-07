@@ -34,6 +34,50 @@ module Card
     # not yet implemented...
   end
 
+  class LoggingCard < Card
+    def initialize card
+      @card = card
+      @log = []
+    end
+
+    def connect &block
+      if block_given?
+        @card.connect 
+        @log.push [">",@card.atr]
+        yield self
+        disconnect
+      else
+        @card.connect
+        @log.push [">",@card.atr]
+      end
+    end
+
+    def disconnect
+      @card.disconnect
+      @log.push [">", ""]
+    end
+
+    def send bytes
+      @card.send bytes
+      @log.push [">", bytes]
+    end
+
+    def receive le=1024
+      recv = @card.receive(le)
+      @log.push ["<", recv]
+      recv
+    end
+    
+    def dump io=STDOUT, formater=lambda{|b| ISO7816.b2s(b)}
+      @log.each{ |line|
+        io.puts("%s : %s" % [line[0], formater.call(line[1])])
+      }        
+      
+    end
+
+
+  end
+
   # This implementation of card relies on 
   # socket communication, it expects an atr to be
   # send on TCP connect

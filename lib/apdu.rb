@@ -155,7 +155,11 @@ class Response
   end
   
   def status
-    b2s([@sw1]<<@sw2)
+    if @sw1 && @sw2
+      status = @sw1.dup
+      return b2s(status<<@sw2)
+    end
+    "????"
   end
 
   def normal?
