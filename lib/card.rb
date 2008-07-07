@@ -68,9 +68,11 @@ module Card
       recv
     end
     
-    def dump io=STDOUT, formater=lambda{|b| ISO7816.b2s(b)}
+    DEFAULT_DUMP = lambda {|dir, b| "%s:%s" % [dir, ISO7816.b2s(b)]}
+    def dump io=STDOUT, formater=DEFAULT_DUMP
       @log.each{ |line|
-        io.puts("%s : %s" % [line[0], formater.call(line[1])])
+        format = DEFAULT_DUMP.call(line[0], line[1])
+        io.puts(format)
       }        
       
     end

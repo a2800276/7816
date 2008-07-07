@@ -23,8 +23,9 @@ module APDU
          
 class APDU
   include ISO7816
+  # data is the transported data
   attr_accessor :data, :le, :card, :name
-  attr_reader :clas, :ins, :p1, :p2
+  attr_reader :cla, :ins, :p1, :p2
 
   def initialize card=nil
     @cla="\x00"
@@ -55,9 +56,6 @@ class APDU
     @lc   
   end 
   
-  def status
-    ISO7816.b2s(([@sw1] << @sw2))
-  end
 
   # normally don't need to set lc, because it's calculated from the
   # data's length, but for testing it may be necessary to set an 
