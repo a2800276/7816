@@ -3,7 +3,7 @@ module Card
   
   # Dummy implementation of `Card` to describe the provided interface
   class Card
-    attr_reader :connected, :atr
+    attr_reader :atr
     # Set up a connection to this card and return the ATR String.
     # May be called with a block which will be passed `self`. Card
     # will call `disconnect` at the end of the block 
@@ -48,8 +48,9 @@ module Card
       require 'socket'
       @socket = TCPSocket.new(@addr, @port)
       @connected = true
-      sleep SLEEP_TIME
-      @atr = @socket.recv 1024, 0
+      
+      sleep SLEEP_TIME 
+      @atr = @socket.recv 1024,0 
       if block_given?
         yield self
         disconnect
@@ -60,6 +61,12 @@ module Card
     def disconnect
       @socket.close if @socket && @connected
       @connected = false
+      true
+    end
+
+    def connected?
+      return false unless @connected
+      # we're still connected, check if peer is still available
       true
     end
 

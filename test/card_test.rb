@@ -23,14 +23,14 @@ class TestCard < Test::Unit::TestCase
   def test_connect
     card = ISO7816::Card::TCPCard.new
     atr = card.connect
-    assert_equal true, card.connected
+    assert_equal true, card.connected?
     assert_equal ATR, atr
     card.disconnect
-    assert_equal false, card.connected
+    assert_equal false, card.connected?
     
     atr = card.connect {} 
     assert_equal ATR, atr
-    assert_equal false, card.connected
+    assert_equal false, card.connected?
 
 
   end

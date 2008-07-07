@@ -54,6 +54,10 @@ class APDU
     end
     @lc   
   end 
+  
+  def status
+    ISO7816.b2s(([@sw1] << @sw2))
+  end
 
   # normally don't need to set lc, because it's calculated from the
   # data's length, but for testing it may be necessary to set an 
