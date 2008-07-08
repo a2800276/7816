@@ -11,6 +11,10 @@ module ISO7816
           ISO7816.b2s bytestr
         end
 
+        def ISO7816.s2b string
+          [string].pack("H*") 
+        end
+
        
 module APDU
 
@@ -135,6 +139,29 @@ class APDU
     end
     "#{line1}\n#{line2}"
   end
+
+  # parses a string of bytes into an APDU object.
+  def self.to_apdu bytes, sanity=true
+    apdu = APDU.new 
+    apdu.cla = bytes[0,1]
+    apdu.ins = bytes[1,1]
+    apdu.p1  = bytes[2,1]
+    apdu.p2  = bytes[3,1]
+    if bytes.size > 4 # at least le
+      if bytes.size > 5 # weird, 0 size lc and no data
+        apdu.lc = bytes[4,1]
+        len = apdu.lc.unpack("C")[0]
+        apdu.data = bytes[5,len]
+        if bytes.size > 5+len
+          raise "Too many bytes!" if bytes.size > 6+len
+          apdu.le = bytes[5+len,1]
+        end
+      else # only le
+        apdu.le = bytes[4,1]
+      end #le
+    end # lc, data, le
+    apdu 
+  end #to_apdu
 end # class APDU 
 
 class Response

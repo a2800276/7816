@@ -43,32 +43,45 @@ module Card
     def connect &block
       if block_given?
         @card.connect 
-        @log.push [">",@card.atr]
+        @log.push [:atr, @card.atr]
         yield self
         disconnect
       else
         @card.connect
-        @log.push [">",@card.atr]
+        @log.push [:atr, @card.atr]
       end
     end
 
     def disconnect
       @card.disconnect
-      @log.push [">", ""]
+      @log.push [:disco, ""]
     end
 
     def send bytes
       @card.send bytes
-      @log.push [">", bytes]
+      @log.push [:send, bytes]
     end
 
     def receive le=1024
       recv = @card.receive(le)
-      @log.push ["<", recv]
+      @log.push [:recv, recv]
       recv
     end
+
+    def comment comment
+      @log.push [:comment, comment]
+    end
     
-    DEFAULT_DUMP = lambda {|dir, b| "%s:%s" % [dir, ISO7816.b2s(b)]}
+    DEFAULT_DUMP = lambda {|dir, b|
+      prefix = case dir
+               when :atr     then "ATR"
+               when :send    then "  >"
+               when :recv    then "  <"
+               when :disco   then "CLIENT DISCONNECT"
+               else               "#"
+               end
+      "%s %s" % [prefix, ISO7816.b2s(b)]
+    }
     def dump io=STDOUT, formater=DEFAULT_DUMP
       @log.each{ |line|
         format = DEFAULT_DUMP.call(line[0], line[1])
