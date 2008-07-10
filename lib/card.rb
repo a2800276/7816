@@ -163,6 +163,7 @@ module Card
       elsif le
         data = ""
         data << @socket.recv(le, flags) while data.length < le
+	return data
       else
         # set le to 1024 (default) and wait a little bit
         le = 1024
