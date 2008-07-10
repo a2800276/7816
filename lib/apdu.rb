@@ -81,10 +81,12 @@ class APDU
   end
 
   def to_b
-    bytes = @cla.dup
+    bytes = "" 
+    bytes << @cla 
     bytes << @ins
     bytes << @p1
     bytes << @p2
+
     if @data != "" || @lc != nil
       bytes << self.lc
       bytes << @data
@@ -139,7 +141,7 @@ class APDU
     end
     "#{line1}\n#{line2}"
   end
-
+  
   # parses a string of bytes into an APDU object.
   def self.to_apdu bytes, sanity=true
     apdu = APDU.new 

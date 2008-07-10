@@ -157,15 +157,19 @@ module Card
         @expect_sw=nil
       end
 
-      if le
+      if le && Socket.const_defined?("MSG_WAITALL")
         # if we know the num bytes to receive, set MSG_WAIT_ALL
         flags = Socket::MSG_WAITALL
+      elsif le
+        data = ""
+        data << @socket.recv(le, flags) while data.length < le
       else
         # set le to 1024 (default) and wait a little bit
         le = 1024
         sleep SLEEP_TIME
         flags = 0
       end
+
       #puts "Waiting to receive: #{le}"
       @socket.recv(le, flags)
     end
