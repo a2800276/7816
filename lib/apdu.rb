@@ -11,7 +11,12 @@ module ISO7816
           ISO7816.b2s bytestr
         end
 
+        def s2b string
+          ISO7816.s2b string
+        end
+
         def ISO7816.s2b string
+          string = string.gsub(/\s+/, "")
           [string].pack("H*") 
         end
 
@@ -78,6 +83,19 @@ class APDU
     else
       @le=val
     end
+  end
+  
+  # add data field to the apdu, contrary to
+  # the +data+ accessor, this method takes a hex string
+  # and not a binary string. The following are identical:
+  #
+  #   apdu.data = "\xaa\xaa\xaa"
+  #
+  # and
+  #    
+  #   apdu.hex_data = "aa aa aa" 
+  def hex_data= val
+    self.data = s2b(val)
   end
 
   def to_b
