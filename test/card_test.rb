@@ -16,7 +16,6 @@ class TestCard < Test::Unit::TestCase
   end
   
   def teardown
-          puts @server.class
     @server.exit
   end
   

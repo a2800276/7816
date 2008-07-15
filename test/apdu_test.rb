@@ -36,6 +36,37 @@ class TestAPDU < Test::Unit::TestCase
     }
 
   end
+
+  def test_basics
+    a = ISO7816::APDU::APDU.new "test-card"
+    assert_equal "\x00", a.cla
+    assert_equal "\x00", a.ins
+    assert_equal "\x00", a.p1
+    assert_equal "\x00", a.p2
+    assert_equal "", a.data
+    assert_equal "", a.le
+    assert_equal "test-card", a.card
+
+    assert_nothing_raised {
+      a.to_s
+      a.to_b
+    }
+    
+    a = ISO7816::APDU::RandomAPDU.new "test-card"
+    [a.cla, a.ins, a.p1, a.p2].each {|by|
+      assert_not_equal nil, by
+      assert_equal 1, by.length
+    }
+    assert_equal true, a.ins_valid?
+    
+    assert_equal "", a.data
+    assert_equal "test-card", a.card
+    
+    assert_nothing_raised {
+      a.to_s
+      a.to_b
+    }
+  end
   def test_to_apdu
     apdu = ISO7816::APDU::APDU.to_apdu(s2b("80b4000008"))
     assert_equal "\x80", apdu.cla

@@ -154,6 +154,7 @@ class APDU
     }.join+"|"
     
     if @data != "" || @le != ""
+            puts @data.class.to_s+"  !!!!!!!!!!!!!!!!!!!!!"
       field_size = @data.length*2>"Data".length ? @data.length*2 : "Data".length 
       if @data.length >=2
         pad0 = " "*((@data.length*2 - 4)/2) 
@@ -197,7 +198,8 @@ end # class APDU
 
 # Each new APDU generated provides a random CLA, INS
 class RandomAPDU < APDU
-  def initialize rand_p1p2 = true, rand_le = true, rand_data=0
+  def initialize card=nil, rand_p1p2 = true, rand_le = true, rand_data=0
+    super card
     @cla = [rand(256)].pack("C")
     @ins = [rand(256)].pack("C")
     if (rand_p1p2)
@@ -216,8 +218,9 @@ class RandomAPDU < APDU
       1.upto(rand_data) {
         data <<  [rand(256)].pack("C") 
       }
-      @data = data
+      @data = data.join
     end
+    
   end
 
   def self.get_random num, seed=0, allow_invalid_ins = false
