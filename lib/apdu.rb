@@ -205,7 +205,7 @@ class RandomAPDU < APDU
     end
 
     if (rand_le)
-      if rand > .5
+      if rand() > 0.5
         @le = [rand(256)].pack("C") 
       end
     end
