@@ -100,7 +100,7 @@ class APDU
 
   # INS may not have values of 0x60..0x6f and 0x90..0x9f
   def ins_valid?
-    invalid = in_range(@ins, "\x60", "\x6f") || in_range(@ins, "\x90", "\x9f")
+    invalid = APDU.in_range(@ins, "\x60", "\x6f") || in_range(@ins, "\x90", "\x9f")
   end
     
   def self.in_range byte, from, to
