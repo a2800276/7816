@@ -9,7 +9,7 @@ require "rubygems"
 
 SHORTNAME	='7816'	# this should be the rubyforge project name
 DESC		='ruby smartcard access'
-PKG_VERSION 	='0.0.2'
+PKG_VERSION 	='0.0.3'
 LONG_DESC	= <<END_DESC
   Utilities to provided ISO 7816 smartcard functionality	
 END_DESC

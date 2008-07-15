@@ -98,6 +98,15 @@ class APDU
     self.data = s2b(val)
   end
 
+  # INS may not have values of 0x60..0x6f and 0x90..0x9f
+  def ins_valid?
+    invalid = in_range(@ins, "\x60", "\x6f") || in_range(@ins, "\x90", "\x9f")
+  end
+    
+  def self.in_range byte, from, to
+    byte >= from && byte <= to  
+  end
+
   def to_b
     bytes = "" 
     bytes << @cla 
@@ -183,6 +192,47 @@ class APDU
     apdu 
   end #to_apdu
 end # class APDU 
+
+
+# Each new APDU generated provides a random CLA, INS
+class RandomAPDU < APDU
+  def initialize rand_p1p2 = true, rand_le = true, rand_data=0
+    @cla = [rand(256)].pack("C")
+    @ins = [rand(256)].pack("C")
+    if (rand_p1p2)
+      @p1 = [rand(256)].pack("C") 
+      @p2 = [rand(256)].pack("C") 
+    end
+
+    if (rand_le)
+      if rand > .5
+        @le = [rand(256)].pack("C") 
+      end
+    end
+    
+    if (rand_data && rand_data>0)
+      data=[]
+      1.upto(rand_data) {
+        data <<  [rand(256)].pack("C") 
+      }
+      @data = data
+    end
+  end
+
+  def self.get_random num, seed=0, allow_invalid_ins = false
+    srand(seed)
+    arr = []
+    1.upto(num) { 
+      apdu = RandomAPDU.new
+      while allow_invalid_ins || !apdu.ins_valid?
+        apdu = RandomAPDU.new
+      end
+      arr << apdu
+    }
+    arr
+  end
+
+end
 
 class Response
   include ISO7816
