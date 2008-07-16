@@ -154,7 +154,6 @@ class APDU
     }.join+"|"
     
     if @data != "" || @le != ""
-            puts @data.class.to_s+"  !!!!!!!!!!!!!!!!!!!!!"
       field_size = @data.length*2>"Data".length ? @data.length*2 : "Data".length 
       if @data.length >=2
         pad0 = " "*((@data.length*2 - 4)/2) 
@@ -223,13 +222,13 @@ class RandomAPDU < APDU
     
   end
 
-  def self.get_random num, seed=0, allow_invalid_ins = false
+  def self.get_random card, num, seed=0, allow_invalid_ins = false
     srand(seed)
     arr = []
     1.upto(num) { 
-      apdu = RandomAPDU.new
+      apdu = RandomAPDU.new card
       while allow_invalid_ins || !apdu.ins_valid?
-        apdu = RandomAPDU.new
+        apdu = RandomAPDU.new card
       end
       arr << apdu
     }

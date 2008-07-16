@@ -4,4 +4,5 @@ $:.unshift(File.dirname(__FILE__)) unless
 require 'card'
 require 'atr'
 require 'apdu'
+require 'iso_apdu'
 

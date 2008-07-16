@@ -97,4 +97,10 @@ class TestAPDU < Test::Unit::TestCase
     assert_equal "", apdu.data
 
   end
+  def test_get_response
+    gr = ISO7816::APDU::GET_RESPONSE.new "dummy-card"
+    assert_equal "dummy-card", gr.card
+    assert_equal "\xc0", gr.ins
+    assert_equal "\x00", gr.cla
+  end
 end
