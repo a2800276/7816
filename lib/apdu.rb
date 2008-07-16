@@ -140,7 +140,7 @@ class APDU
     if (how_much_more = resp.more_data?)
       gr = GET_RESPONSE.new
       gr.le = how_much_more
-      resp = Response.new(gr.send(false, card), gr) # avoid infinite get_response loop... how to handle? 
+      resp = gr.send(false, card) # avoid infinite get_response loop... how to handle? 
     end
 
     resp
