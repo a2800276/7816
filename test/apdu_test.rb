@@ -51,7 +51,12 @@ class TestAPDU < Test::Unit::TestCase
       a.to_s
       a.to_b
     }
-    
+
+    assert_equal false, a.case_4?
+    a.data = "abc"
+    a.le = 4
+    assert_equal true, a.case_4?
+
     a = ISO7816::APDU::RandomAPDU.new "test-card"
     [a.cla, a.ins, a.p1, a.p2].each {|by|
       assert_not_equal nil, by

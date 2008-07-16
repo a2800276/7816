@@ -97,6 +97,12 @@ class APDU
   def hex_data= val
     self.data = s2b(val)
   end
+  
+  # Indicate whether this is a case_4 APDU.
+  # In case of T=0, le field is NOT sent along for case 4 APDUs
+  def case_4?
+    @data!="" && @le!=""
+  end
 
   # INS may not have values of 0x60..0x6f and 0x90..0x9f
   def ins_valid?
@@ -129,10 +135,20 @@ class APDU
     card = card || @card
     raise "no card to send data to" unless card
     
-    card.send self.to_b
+    data_to_send = self.to_b
+    data_to_send = data_to_send.chop if card.t0? && self.case_4? 
+    
+    if card.t0? && data_to_send.length == 4
+      #7816-3: ... case1 apdu mapped onto TPDU with P3=00
+      data_to_send << "\x00"
+    end
+    card.send data_to_send 
     
     to_receive = 2 
     to_receive += @le.unpack("C")[0] if @le && @le != ""
+    if card.t0? && self.case_4?
+      to_receive = 2
+    end
 
     r = card.receive(to_receive)
     resp = Response.new(r, self)

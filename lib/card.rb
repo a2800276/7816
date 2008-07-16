@@ -28,6 +28,10 @@ module Card
     def receive le=1024
       raise "not implemented, use a subclass of `Card`!"
     end
+
+    def t0?
+      raise "not implemented, use a subclass of `Card`!"
+    end
   end #class Card
   
   class PCSCCard < Card
@@ -66,6 +70,10 @@ module Card
       recv = @card.receive(le)
       @log.push [:recv, recv]
       recv
+    end
+
+    def t0?
+      @card.t0?
     end
 
     def comment comment
@@ -173,6 +181,10 @@ module Card
 
       #puts "Waiting to receive: #{le}"
       @socket.recv(le, flags)
+    end
+
+    def t0?
+      true
     end
      
   end # class TCPCard
