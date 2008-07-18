@@ -139,7 +139,9 @@ module Card
 
     def send bytes, flags=0
       raise "not connected" unless @connected
-      @socket.send bytes, flags
+      bytes1 = bytes[0,5]
+      bytes2 = bytes[5,bytes.length]
+      @socket.send bytes1, flags
       # TCP2 echos back the ins byte, flags
       # according to ISO 7816-3 10.3.3
       proc_byte = @socket.recv 1, Socket::MSG_PEEK 
@@ -150,6 +152,7 @@ module Card
         @expect_sw=true
       else # INS being echoed back
         @socket.recv 1, 0
+        @socket.send bytes2,flags
       end
     end
     
