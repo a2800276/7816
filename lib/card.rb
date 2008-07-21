@@ -20,6 +20,11 @@ module Card
     def send bytes=""
       raise "not implemented, use a subclass of `Card`!"
     end
+
+    def reconnect
+      disconnect
+      connect
+    end
   
     # receive a response from the card, optionally pass in the
     # number of expected bytes in the response, this value will be 1024
