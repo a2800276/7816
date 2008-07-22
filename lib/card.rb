@@ -48,7 +48,9 @@ module Card
       @card = card
       @log = []
     end
-
+    def atr
+      @card.atr
+    end
     def connect &block
       if block_given?
         @card.connect 
