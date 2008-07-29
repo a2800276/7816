@@ -44,6 +44,7 @@ module Card
   end
 
   class LoggingCard < Card
+    attr_accessor :card
     def initialize card
       @card = card
       @log = []
@@ -113,6 +114,7 @@ module Card
   # send on TCP connect
   class TCPCard < Card
     SLEEP_TIME = 0.1
+    attr_accessor :addr, :port
     def initialize addr="127.0.0.1", port=1024
       @addr = addr
       @port = port
@@ -135,6 +137,7 @@ module Card
     def disconnect
       @socket.close if @socket && @connected
       @connected = false
+      @expect_sw=nil
       true
     end
 
