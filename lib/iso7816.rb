@@ -5,6 +5,4 @@ require 'card'
 require 'atr'
 require 'apdu'
 require 'iso_apdu'
-require 'emv_apdu'
-require 'cps_apdu'
 
