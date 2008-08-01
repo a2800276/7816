@@ -2,59 +2,165 @@ module EMV
 module APDU
 module CPS
 
+
+class SecureContext
+  # The Kenc key used in this session
+  attr_accessor :k_enc
+
+  # The Kmac key used in this session
+  attr_accessor :k_mac
+
+  # The challenge sent to the card, (Rterm)
+  attr_accessor :host_challenge
+
+  # The session key SKUenc
+  attr_accessor :sku_enc
+  
+  attr_accessor :sku_mac
+  
+  # The card's response to initialize update containing:
+  # kmc_id       		      (Identifier of the KMC)
+  # csn   		            (Chip Serial Number)
+  # kmc_version 		      (Version Number of Master key (KMC))
+  # sec_channel_proto_id 	(Identifier of Secure Channel Protocol)
+  # sequence_counter      (Sequence Counter)
+  # challenge 		        (Card challenge (r card))
+  # cryptogram 		        (Card Cryptogram)
+
+  attr_reader :initialize_response
+
+  # The security level established by the EXTERNAL_AUTH command
+  # According to CPS Table 19
+  # One of:
+  #   :enc_and_mac
+  #   :mac
+  #   :no_sec
+  attr_accessor :level
+
+
+  def initialize k_enc="\x00"*16, k_mac="\x00"*16, host_challenge="\x00"*8
+    @k_enc = k_enc
+    @k_mac = k_mac
+    @host_challenge=host_challenge
+    @level = :no_sec
+  end
+
+  # Set the response returned by INITIALIZE UPDATE.
+  # * calculates the Session keys.
+  def initialize_response= resp
+
+    @initialize_response = resp
+
+    @sku_enc = EMV::Crypto.generate_session_key(k_enc, 
+                                                @initialize_response.sequence_counter, 
+                                                :enc)
+    @sku_mac = EMV::Crypto.generate_session_key(k_mac,
+                                                @initialize_response.sequence_counter,
+                                                :mac)
+  end
+
+  # Verify the cryptogram sent by the card according to: CPS 3.2.5.10
+  def check_card_cryptogram
+    mac_         = host_challenge + 
+                   initialize_response.sequence_counter + 
+                   initialize_response.challenge
+
+    mac          = EMV::Crypto.mac_for_personalization(sku_enc, mac_)
+    raise "invalid MAC returned from card!" unless mac == @initialize_response.cryptogram
+  end
+  
+  # Calculates the host cryptogram according to CPS 3.2.6.6
+  def calculate_host_cryptogram
+    mac_ = initialize_response.sequence_counter + 
+           initialize_response.challenge +
+           host_challenge
+
+    EMV::Crypto.mac_for_personalization(sku_enc, mac_)
+  end
+  
+  # Calculate the C-MAC according to CP 5.4.2.2
+  def calculate_c_mac apdu
+    # data with placeholder for cmac      
+    data =  apdu.data
+    mac_ =  apdu.cla +
+            apdu.ins +
+            apdu.p1  +
+            apdu.p2 
+    
+    mac_ << apdu.data.length+8
+    mac_ << data 
+
+    mac_ = @c_mac + mac_ if @c_mac # "prepend the c-mac computed for the previous command ..."
+    @c_mac = EMV::Crypto.retail_mac(sku_mac, mac_) 
+    @c_mac  
+  end
+  
+  # Retrieve the current seq number, this also increments the counter.
+  def store_data_seq_number
+    @store_data_seq_number ||= -1
+    @store_data_seq_number += 1
+    "" << @store_data_seq_number
+  end
+  
+  # Encrypt data bytes according to CPS 5.5.2
+  def encrypt data
+    data = EMV::Crypto.pad data
+    cipher = OpenSSL::Cipher::Cipher.new("des-ede-cbc").encrypt
+    cipher.key = sku_enc
+    cipher.update data
+  end
+end
+
 class CPS_APDU < EMV::APDU::EMV_APDU
-  attr_accessor :kenc
-  attr_accessor :ini_response
-  attr_accessor :ses_key_enc
-  def initialize card=nil, kenc="\x00"*16
+  attr_accessor :secure_context
+
+  def initialize card, secure_context
     super card
-    @kenc= kenc
+    @secure_context= secure_context
   end
 end
 class INITIALIZE_UPDATE < CPS_APDU 
-  def initialize card=nil, kenc="\x00"*16
+  def initialize card, secure_context 
     super 
     @ins="\x50"
   end
-
-  def challenge= challenge
-    @data=challenge
+  def key_version_number= kvn
+    self.p1= kvn
   end
   def send handle_more_data=true, card=nil
+    @data = secure_context.host_challenge
     resp = super
-    @ini_response = EMV::Data::InitializeUpdateData.new(resp.data) if resp.status == "9000"
-    check_cryptogram
+    if resp.status == "9000"
+        @secure_context.initialize_response = EMV::Data::InitializeUpdateData.new(resp.data)
+        @secure_context.check_card_cryptogram
+    end
     resp
   end
-
-  def check_cryptogram
-    return unless @ini_response
-    @ses_key_enc = EMV::Crypto.generate_session_key(kenc, @ini_response.seq_counter, :enc)
-    mac_         = data + @ini_response.seq_counter + @ini_response.challenge
-    mac          = EMV::Crypto.mac_for_personalization(@ses_key_enc, mac_)
-    raise "invalid MAC returned from card!" unless mac == @ini_response.cryptogram
-  end
 end
+
 class C_MAC_APDU < CPS_APDU
-  attr_accessor :prev_c_mac
-  attr_accessor :c_mac
-  def initialize card, prev
-    super card, prev.kenc
-    self.prev_c_mac = prev.c_mac if prev.is_a? C_MAC_APDU
-  end
-end
-class EXTERNAL_AUTHENTICATE < CPS_APDU 
-  # the INITIALIZE UPDATE cmd that preceeded this EXT AUTH
-  attr_accessor :initialize_update
+  # Provides the possibility to override the calculated c_mac
+  # with an arbitrary one for testing.
+  attr_writer :c_mac
 
-  def initialize card, init_update
+  def initialize card, secure_context
+    super
+  end
+
+  # calculate the c-mac according to 5.4.2.2
+  def c_mac
+    @c_mac ||=  secure_context.calculate_c_mac(self) 
+    @c_mac  
+  end          
+end
+
+class EXTERNAL_AUTHENTICATE < C_MAC_APDU 
+
+  def initialize card, secure_context
     super
     @cla="\x84"
     @ins="\x82"
-    @initialize_update = init_update
-    @ini_response = @initialize_update.ini_response
-    @ses_key_enc  = @initialize_update.ses_key_enc
-
+    self.security_level= secure_context.level if secure_context.level
   end
 
   #
@@ -74,47 +180,32 @@ class EXTERNAL_AUTHENTICATE < CPS_APDU
       else
         p1=level  
     end
+    @secure_context.level= level
   end
   
   # 
   # Sets the host cryptogram according to CPS 3.2.6.6
-  # takes either one parameter, the calculated cryptogram data, or
-  # the cryptogram is calculated 
   #
   def cryptogram 
-    return @cryptogram if @cryptogram
-
-    mac_ = @ini_response.seq_counter + 
-           @ini_response.challenge +
-           @initialize_update.challenge
-    mac  = EMV::Crypto.mac_for_personalization(@ses_key_enc, mac_)
-    
-    @cryptogram = mac
+    @cryptogram ||= secure_context.calculate_host_cryptogram
     @cryptogram
   end
 
-  def cryptogram= bytes
+  # Explicitly set a cryptogram, e.g. if an incorrect cryptogram is to be set
+  # for testing.
+  def cryptogram= bytes 
     @cryptogram= bytes
   end
 
-  # calculate the c-mac according to 5.4.2.2
-  def c_mac
-    return @c_mac if @c_mac
-    # data with placeholder for cmac      
-    self.data= cryptogram + "\x00"*8
-    bytes = to_b
-    bytes = bytes[0, bytes.length-8] # command header with data, excl. cmac
     
-    @c_mac = EMV::Crypto.retail_mac(bytes) 
-    self.data= cryptogram + @c_mac
-    @c_mac  
-  end          
+  def send handle_more_data=true, card=nil
+    @data= self.cryptogram+c_mac # calculate the c_mac...
+    super
+  end
 
-  def c_mac= bytes
-    self.data= cryptogram + bytes
-  end 
+
 end
-class STORE_DATA < EMV::APDU::EMV_APDU
+class STORE_DATA < C_MAC_APDU 
 
   LAST_STORE_DATA_MASK = 0x80
   ALL_DGI_ENC_MASK =     0x60
@@ -123,9 +214,11 @@ class STORE_DATA < EMV::APDU::EMV_APDU
 
   SECURE_MASK = 0x04
 
-  def initialize card=nil
+  def initialize card, secure_context
     super
-    @ins="\xE2"
+    @ins= "\xE2"
+    @cla= "\x84" unless secure_context.level == :no_sec
+    @p2 = secure_context.store_data_seq_number
   end
   def secure
     self.cla= cla[0] | SECURE_MASK
@@ -156,6 +249,19 @@ class STORE_DATA < EMV::APDU::EMV_APDU
   end
   def app_dependant?
     (p1[0] & APP_DEPENDANT_MASK) == APP_DEPENDANT_MASK
+  end
+  
+  def send handle_more_data=true, card=nil
+    unless secure_context.level == :no_sec
+      c_mac_ = self.c_mac # c_mac  is calculated over unencrypted data
+      if secure_context.level == :enc_and_mac
+        @data= secure_context.encrypt(self.data)+c_mac_
+      else
+        @data= self.data+c_mac_
+      end
+    end
+
+    super
   end
 
 end

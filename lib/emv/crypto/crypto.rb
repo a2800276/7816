@@ -51,8 +51,12 @@ module Crypto
 
     single_data = data[0,data.length-8]
     # Single DES with XOR til the last block
-    mac_ = cipher.update(single_data)
-    mac_ = mac_[mac_.length-8, 8]
+    if single_data && single_data.length > 0
+      mac_ = cipher.update(single_data)
+      mac_ = mac_[mac_.length-8, 8]
+    else # length of data was <= 8
+      mac_ = "\x00"*8
+    end
 
     triple_data = data[data.length-8, 8]
     mac = ""
@@ -75,6 +79,7 @@ module Crypto
   end
 
   def self.check_and_convert mes, data, length_in_bytes
+    raise "`#{mes}` may not be nil" unless data
     unless data.length == length_in_bytes || data.length == length_in_bytes*2
       raise "invalid length for '#{mes}'. Should be #{length_in_bytes}" 
     end

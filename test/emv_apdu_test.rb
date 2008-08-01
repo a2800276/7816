@@ -31,9 +31,11 @@ class TestEMV_APDU < Test::Unit::TestCase
   end
 
   def test_cps_apdus
-    ini=EMV::APDU::CPS::INITIALIZE_UPDATE.new
-    EMV::APDU::CPS::EXTERNAL_AUTHENTICATE.new nil, ini
-    sd = EMV::APDU::CPS::STORE_DATA.new
+    ctx = EMV::APDU::CPS::SecureContext.new
+
+    EMV::APDU::CPS::INITIALIZE_UPDATE.new nil, ctx
+    EMV::APDU::CPS::EXTERNAL_AUTHENTICATE.new nil, ctx
+    sd = EMV::APDU::CPS::STORE_DATA.new nil, ctx
     assert_equal "\x00", sd.p1
     sd.last_store_data
     assert_equal "\x80", sd.p1
@@ -46,6 +48,7 @@ class TestEMV_APDU < Test::Unit::TestCase
     sd.all_dgi_enc
     assert_equal "\xe0", sd.p1
 
+    
     assert !sd.secure?
     sd.secure
     assert sd.secure?
