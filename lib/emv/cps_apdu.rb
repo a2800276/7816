@@ -1,4 +1,3 @@
-require 'bytes_ng'
 module EMV 
 module APDU
 module CPS
@@ -36,13 +35,20 @@ class INITIALIZE_UPDATE < CPS_APDU
     raise "invalid MAC returned from card!" unless mac == @ini_response.cryptogram
   end
 end
-
+class C_MAC_APDU < CPS_APDU
+  attr_accessor :prev_c_mac
+  attr_accessor :c_mac
+  def initialize card, prev
+    super card, prev.kenc
+    self.prev_c_mac = prev.c_mac if prev.is_a? C_MAC_APDU
+  end
+end
 class EXTERNAL_AUTHENTICATE < CPS_APDU 
   # the INITIALIZE UPDATE cmd that preceeded this EXT AUTH
   attr_accessor :initialize_update
 
   def initialize card, init_update
-    super card, init_update.kenc
+    super
     @cla="\x84"
     @ins="\x82"
     @initialize_update = init_update
