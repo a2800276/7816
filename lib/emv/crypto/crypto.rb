@@ -27,11 +27,7 @@ module Crypto
   # Mac calculation according to CPS 5.4.1. 
   def self.mac_for_personalization key, input
     key = check_and_convert "key", key, 16
-
-    input += "\x80"
-    while (input.length % 8) != 0
-      input << 0x00
-    end
+    input = pad(input)
     cipher = OpenSSL::Cipher::Cipher.new("des-ede-cbc").encrypt
     cipher.key = key
     mac = ""
@@ -39,6 +35,43 @@ module Crypto
       mac = cipher.update block
     }
     mac
+  end
+  
+  # calculate ISO 9797-1 "Retail Mac"
+  # (MAC Algorithm 3 with output transformation 3,
+  # without truncation) : 
+  # DES with final TDES.
+  #
+  # Padding is added if data is not a multiple of 8
+  def self.retail_mac key, data
+    cipher      = OpenSSL::Cipher::Cipher.new("des-cbc").encrypt
+    cipher.key  = key[0,8]
+
+    data = pad(data) unless (data % 8) == 0
+
+    single_data = data[0,data.length-8]
+    # Single DES with XOR til the last block
+    mac_ = cipher.update(single_data)
+    mac_ = mac_[mac_.length-8, 8]
+
+    triple_data = data[data.length-8, 8]
+    mac = ""
+    0.upto(7) { |i|
+      mac << (mac_[i] ^ triple_data[i])
+    }
+    # Final Round of TDES
+    cipher      = OpenSSL::Cipher::Cipher.new("des-ede").encrypt
+    cipher.key  = key
+    cipher.update(mac)
+  end
+
+  def self.pad input
+
+    input += "\x80"
+    while (input.length % 8) != 0
+      input << 0x00
+    end
+    input
   end
 
   def self.check_and_convert mes, data, length_in_bytes

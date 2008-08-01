@@ -217,6 +217,9 @@ class RandomAPDU < APDU
     super card
     @cla = [rand(256)].pack("C")
     @ins = [rand(256)].pack("C")
+    until ins_valid?
+      @ins = [rand(256)].pack("C")
+    end
     if (rand_p1p2)
       @p1 = [rand(256)].pack("C") 
       @p2 = [rand(256)].pack("C") 
