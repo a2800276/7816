@@ -47,7 +47,7 @@ module Crypto
     cipher      = OpenSSL::Cipher::Cipher.new("des-cbc").encrypt
     cipher.key  = key[0,8]
 
-    data = pad(data) unless (data % 8) == 0
+    data = pad(data) 
 
     single_data = data[0,data.length-8]
     # Single DES with XOR til the last block

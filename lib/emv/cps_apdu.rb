@@ -51,6 +51,7 @@ class SecureContext
 
     @initialize_response = resp
 
+
     @sku_enc = EMV::Crypto.generate_session_key(k_enc, 
                                                 @initialize_response.sequence_counter, 
                                                 :enc)
@@ -74,13 +75,12 @@ class SecureContext
     mac_ = initialize_response.sequence_counter + 
            initialize_response.challenge +
            host_challenge
-
     EMV::Crypto.mac_for_personalization(sku_enc, mac_)
   end
   
   # Calculate the C-MAC according to CP 5.4.2.2
   def calculate_c_mac apdu
-    # data with placeholder for cmac      
+    # data with placeholder for cmac
     data =  apdu.data
     mac_ =  apdu.cla +
             apdu.ins +
@@ -89,8 +89,9 @@ class SecureContext
     
     mac_ << apdu.data.length+8
     mac_ << data 
-
-    mac_ = @c_mac + mac_ if @c_mac # "prepend the c-mac computed for the previous command ..."
+    if @c_mac # "prepend the c-mac computed for the previous command ..."
+      mac_ = @c_mac + mac_ 
+    end
     @c_mac = EMV::Crypto.retail_mac(sku_mac, mac_) 
     @c_mac  
   end
@@ -199,7 +200,8 @@ class EXTERNAL_AUTHENTICATE < C_MAC_APDU
 
     
   def send handle_more_data=true, card=nil
-    @data= self.cryptogram+c_mac # calculate the c_mac...
+    @data=  self.cryptogram
+    @data+= c_mac # calculate the c_mac...
     super
   end
 

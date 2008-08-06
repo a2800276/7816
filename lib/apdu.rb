@@ -153,7 +153,7 @@ class APDU
     r = card.receive(to_receive)
     resp = Response.new(r, self)
     
-    if (how_much_more = resp.more_data?)
+    if (handle_more_data && how_much_more = resp.more_data?)
       gr = GET_RESPONSE.new
       gr.le = how_much_more
       resp = gr.send(false, card) # avoid infinite get_response loop... how to handle? 
