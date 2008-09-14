@@ -102,6 +102,11 @@ class SecureContext
     @store_data_seq_number += 1
     "" << @store_data_seq_number
   end
+
+  def reset
+    @c_mac = nil
+    @store_data_seq_number = -1
+  end
   
   # Encrypt data bytes according to CPS 5.5.2
   def encrypt data
@@ -216,11 +221,12 @@ class STORE_DATA < C_MAC_APDU
 
   SECURE_MASK = 0x04
 
-  def initialize card, secure_context
-    super
+  def initialize card, secure_context, data=""
+    super(card, secure_context)
     @ins= "\xE2"
     @cla= "\x84" unless secure_context.level == :no_sec
     @p2 = secure_context.store_data_seq_number
+    self.data= data
   end
   def secure
     self.cla= cla[0] | SECURE_MASK
