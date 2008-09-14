@@ -105,7 +105,10 @@ class SecureContext
 
   def reset
     @c_mac = nil
-    @store_data_seq_number = -1
+    @store_data_seq_number = nil
+    @sku_enc = nil
+    @sku_mac = nil
+    @initialize_response = nil
   end
   
   # Encrypt data bytes according to CPS 5.5.2
@@ -134,7 +137,9 @@ class INITIALIZE_UPDATE < CPS_APDU
     self.p1= kvn
   end
   def send handle_more_data=true, card=nil
+    secure_context.reset
     @data = secure_context.host_challenge
+
     resp = super
     if resp.status == "9000"
         @secure_context.initialize_response = EMV::Data::InitializeUpdateData.new(resp.data)
@@ -225,7 +230,6 @@ class STORE_DATA < C_MAC_APDU
     super(card, secure_context)
     @ins= "\xE2"
     @cla= "\x84" unless secure_context.level == :no_sec
-    @p2 = secure_context.store_data_seq_number
     self.data= data
   end
   def secure
@@ -260,6 +264,9 @@ class STORE_DATA < C_MAC_APDU
   end
   
   def send handle_more_data=true, card=nil
+
+    @p2 = secure_context.store_data_seq_number
+
     unless secure_context.level == :no_sec
       c_mac_ = self.c_mac # c_mac  is calculated over unencrypted data
       if secure_context.level == :enc_and_mac
@@ -268,7 +275,6 @@ class STORE_DATA < C_MAC_APDU
         @data= self.data+c_mac_
       end
     end
-
     super
   end
 
