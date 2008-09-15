@@ -58,6 +58,10 @@ class SecureContext
     @sku_mac = EMV::Crypto.generate_session_key(k_mac,
                                                 @initialize_response.sequence_counter,
                                                 :mac)
+    
+    @sku_dek = EMV::Crypto.generate_session_key(k_dek,
+                                                @initialize_response.sequence_counter,
+                                                :dek)
   end
 
   # Verify the cryptogram sent by the card according to: CPS 3.2.5.10

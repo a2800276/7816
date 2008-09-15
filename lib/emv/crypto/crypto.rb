@@ -24,6 +24,13 @@ module Crypto
     cipher.update derivation_data
   end
   
+  # encrypt ecb according to CPS 5.5.1
+  def self.encrypt_ecb key, data
+    cipher = OpenSSL::Cipher::Cipher.new("des-ede").encrypt
+    cipher.key = key
+    cipher.update(data)
+  end
+  
   # Mac calculation according to CPS 5.4.1. 
   def self.mac_for_personalization key, input
     key = check_and_convert "key", key, 16
