@@ -30,6 +30,14 @@ module Crypto
     cipher.key = key
     cipher.update(data)
   end
+
+  #encrypt cbc accroding to CPS 5.5.2
+  def self.encrypt_cbc key, data
+    cipher = OpenSSL::Cipher::Cipher.new("des-ede-cbc").encrypt
+    cipher.key = key
+    data = pad(data)
+    cipher.update data
+  end
   
   # Mac calculation according to CPS 5.4.1. 
   def self.mac_for_personalization key, input
@@ -38,7 +46,7 @@ module Crypto
     cipher = OpenSSL::Cipher::Cipher.new("des-ede-cbc").encrypt
     cipher.key = key
     mac = ""
-    input.scan(/.{8}/) {|block|
+    input.scan(/.{8}/m) {|block|
       mac = cipher.update block
     }
     mac

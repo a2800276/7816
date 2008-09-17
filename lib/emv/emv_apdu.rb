@@ -45,6 +45,16 @@ end
 class SELECT < ISO7816::APDU::SELECT
 end
 class VERIFY < ISO7816::APDU::VERIFY
+  def initialize card 
+    super
+    self.plaintext_pin
+  end
+  def plaintext_pin
+    @p2 = ("" << 0x80)
+  end  
+  def enciphered_pin
+    @p2 = ("" << 0x88)
+  end
 end
 
 end # APDU

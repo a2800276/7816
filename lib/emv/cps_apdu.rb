@@ -9,6 +9,9 @@ class SecureContext
 
   # The Kmac key used in this session
   attr_accessor :k_mac
+  
+  # The Kdek key used in this session
+  attr_accessor :k_dek
 
   # The challenge sent to the card, (Rterm)
   attr_accessor :host_challenge
@@ -17,6 +20,7 @@ class SecureContext
   attr_accessor :sku_enc
   
   attr_accessor :sku_mac
+  attr_accessor :sku_dek
   
   # The card's response to initialize update containing:
   # kmc_id       		      (Identifier of the KMC)
@@ -38,9 +42,11 @@ class SecureContext
   attr_accessor :level
 
 
-  def initialize k_enc="\x00"*16, k_mac="\x00"*16, host_challenge="\x00"*8
+  def initialize k_enc="\x00"*16, k_mac="\x00"*16, k_dek="\x00"*16, host_challenge="\x00"*8
     @k_enc = k_enc
     @k_mac = k_mac
+    @k_dek = k_dek
+    
     @host_challenge=host_challenge
     @level = :no_sec
   end
@@ -170,7 +176,6 @@ class C_MAC_APDU < CPS_APDU
 end
 
 class EXTERNAL_AUTHENTICATE < C_MAC_APDU 
-
   def initialize card, secure_context
     super
     @cla="\x84"
@@ -187,13 +192,13 @@ class EXTERNAL_AUTHENTICATE < C_MAC_APDU
   def security_level= level
     case level
       when :enc_and_mac 
-        p1= 0x03
+        self.p1= 0x03
       when :mac
-        p1= 0x01
+        self.p1= 0x01
       when :no_sec
-        p1= 0x00
+        self.p1= 0x00
       else
-        p1=level  
+        self.p1=level  
     end
     @secure_context.level= level
   end
