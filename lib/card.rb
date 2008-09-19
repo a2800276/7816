@@ -84,8 +84,8 @@ module Card
       @card.t0?
     end
 
-    def comment comment
-      @log.push [:comment, comment]
+    def comment txt
+      @log.push [:comment, txt]
     end
     
     DEFAULT_DUMP = lambda {|dir, b|
@@ -93,10 +93,16 @@ module Card
                when :atr     then "ATR"
                when :send    then "  >"
                when :recv    then "  <"
-               when :disco   then "CLIENT DISCONNECT"
-               else               "#"
+               when :disco   then "\nCLIENT DISCONNECT"
+               else               :comment
                end
-      "%s %s" % [prefix, ISO7816.b2s(b)]
+      if prefix == :comment
+        txt = "\n"
+        b.each_line{|line| txt << "      #{line}"}
+        txt << "\n\n"     
+      else
+        "%s %s" % [prefix, ISO7816.b2s(b)]
+      end
     }
     def dump io=STDOUT, formater=DEFAULT_DUMP
       @log.each{ |line|

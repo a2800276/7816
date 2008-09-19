@@ -1,3 +1,4 @@
+require 'hexy'
 module ISO7816
         def ISO7816.b2s bytestr
           r = bytestr.unpack("H*")[0]
@@ -142,6 +143,10 @@ class APDU
       #7816-3: ... case1 apdu mapped onto TPDU with P3=00
       data_to_send << "\x00"
     end
+    if card.respond_to? :comment
+      card.comment "#{self.class.to_s}\n#{self.to_s.strip}" 
+    end
+
     card.send data_to_send 
     
     to_receive = 2 
@@ -168,11 +173,15 @@ class APDU
     line2 = [@cla, @ins, @p1, @p2].map { |b|
       "| "+ ( b.unpack("H*")[0] )
     }.join+"|"
-    
+
+    data = @data
+    if @data.length > 16
+      data = ""
+    end
     if @data != "" || @le != ""
-      field_size = @data.length*2>"Data".length ? @data.length*2 : "Data".length 
-      if @data.length >=2
-        pad0 = " "*((@data.length*2 - 4)/2) 
+      field_size = data.length*2>"Data".length ? data.length*2 : "Data".length 
+      if data.length >=2
+        pad0 = " "*((data.length*2 - 4)/2) 
         pad1 = ""
       else
         pad0 = ""
@@ -181,9 +190,15 @@ class APDU
       #line1 += "| LC|#{pad0}Data#{pad0}| LE|"      
       line1 += ("| LC|% #{field_size}s| LE|" % "Data")     
       #line2 += "| #{b2s(self.lc)}|#{pad1}#{b2s(@data)}#{pad1}| #{@le?b2s(@le):"  "}|"
-      line2 += "| #{b2s(self.lc)}|% #{field_size}s| #{@le?b2s(@le):"  "}|" % b2s(@data)
+      line2 += "| #{b2s(self.lc)}|% #{field_size}s| #{@le?b2s(@le):"  "}|" % b2s(data)
     end
-    "#{line1}\n#{line2}"
+    txt = "#{line1}\n#{line2}"
+    if @data.length > 16
+      h = Hexy.new @data
+      txt << "\n\n"
+      txt << h.to_s
+    end
+    txt
   end
   
   # parses a string of bytes into an APDU object.
