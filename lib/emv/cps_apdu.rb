@@ -77,7 +77,19 @@ class SecureContext
                    initialize_response.challenge
 
     mac          = EMV::Crypto.mac_for_personalization(sku_enc, mac_)
-    raise "invalid MAC returned from card!" unless mac == @initialize_response.cryptogram
+    unless mac == initialize_response.cryptogram
+      raise %Q{
+Invalid MAC returned from card!
+host challenge: #{ISO7816.b2s(host_challenge)}
+card seq      : #{ISO7816.b2s(initialize_response.sequence_counter)}
+card challenge: #{ISO7816.b2s(initialize_response.challenge)}
+expected mac  : #{ISO7816.b2s(mac)}
+recv mac      : #{ISO7816.b2s(initialize_response.cryptogram)}
+k_enc         : #{ISO7816.b2s(k_enc)}
+k_mac         : #{ISO7816.b2s(k_mac)}
+k_dek         : #{ISO7816.b2s(k_dek)}
+      }
+    end
   end
   
   # Calculates the host cryptogram according to CPS 3.2.6.6
