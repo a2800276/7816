@@ -19,13 +19,9 @@ class TestAPDU < Test::Unit::TestCase
     [:no_sec, :mac, :enc_and_mac].each {|lev|
            mock_ctx.level=lev
            sd = EMV::APDU::CPS::STORE_DATA.new nil, mock_ctx
-           assert_equal lev, sd.security_level
-           case lev
-           when :no_sec, :mac
-             assert !sd.secure?
-           else
-             assert sd.secure?
-           end
+           # shouldn't be set
+           assert_equal nil, sd.security_level
+           assert !sd.secure?
 
            sd.security_level = :no_sec
            assert !sd.secure? 

@@ -252,7 +252,7 @@ class STORE_DATA < C_MAC_APDU
   def initialize card, secure_context, data=""
     super(card, secure_context)
     @ins= "\xE2"
-    @security_level = secure_context.level
+    #@security_level = secure_context.level
     @cla= "\x84" if @security_level == :enc_and_mac
     self.data= data
   end
@@ -298,6 +298,10 @@ class STORE_DATA < C_MAC_APDU
   def send handle_more_data=true, card=nil
 
     @p2 = secure_context.store_data_seq_number
+
+    # Secure Ctx security level may change in the course of a series of
+    # apdus, so we only no the current state just before sending.
+    @security_level ||= @secure_context.security_level
 
     unless @security_level == :no_sec
       c_mac_ = self.c_mac # c_mac  is calculated over unencrypted data
