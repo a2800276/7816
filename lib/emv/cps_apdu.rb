@@ -301,7 +301,7 @@ class STORE_DATA < C_MAC_APDU
 
     # Secure Ctx security level may change in the course of a series of
     # apdus, so we only no the current state just before sending.
-    @security_level ||= @secure_context.level
+    self.security_level= @secure_context.level unless @security_level
 
     unless @security_level == :no_sec
       c_mac_ = self.c_mac # c_mac  is calculated over unencrypted data
