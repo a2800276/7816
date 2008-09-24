@@ -258,7 +258,7 @@ class STORE_DATA < C_MAC_APDU
   end
   def security_level= level
     @security_level = level
-    if level == :enc_and_mac
+    if [:enc_and_mac, :mac].include? level
       secure
     else
       self.cla = 0x80

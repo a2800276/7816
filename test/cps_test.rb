@@ -26,7 +26,7 @@ class TestAPDU < Test::Unit::TestCase
            sd.security_level = :no_sec
            assert !sd.secure? 
            sd.security_level = :mac
-           assert !sd.secure? 
+           assert sd.secure? 
            sd.security_level = :enc_and_mac
            assert sd.secure? 
     }
