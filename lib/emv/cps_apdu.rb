@@ -247,11 +247,22 @@ class STORE_DATA < C_MAC_APDU
 
   SECURE_MASK = 0x04
 
+  attr_reader :security_level
+
   def initialize card, secure_context, data=""
     super(card, secure_context)
     @ins= "\xE2"
-    @cla= "\x84" unless secure_context.level == :no_sec
+    @security_level = secure_context.level
+    @cla= "\x84" if @security_level == :enc_and_mac
     self.data= data
+  end
+  def security_level= level
+    @security_level = level
+    if level == :enc_and_mac
+      secure
+    else
+      self.cla = 0x80
+    end   
   end
   def secure
     self.cla= cla[0] | SECURE_MASK
@@ -288,9 +299,9 @@ class STORE_DATA < C_MAC_APDU
 
     @p2 = secure_context.store_data_seq_number
 
-    unless secure_context.level == :no_sec
+    unless @security_level == :no_sec
       c_mac_ = self.c_mac # c_mac  is calculated over unencrypted data
-      if secure_context.level == :enc_and_mac
+      if @security_level == :enc_and_mac
         @data= secure_context.encrypt(self.data)+c_mac_
       else
         @data= self.data+c_mac_
