@@ -40,7 +40,72 @@ module Card
   end #class Card
   
   class PCSCCard < Card
-    # not yet implemented...
+    def initialize(
+            ctx=nil, 
+            scope=Smartcard::PCSC::SCOPE_SYSTEM,
+            reader_name=nil, 
+            share=Smartcard::PCSC::SHARE_EXCLUSIVE, 
+            proto=Smartcard::PCSC::PROTOCOL_ANY, 
+           
+    )
+      @ctx = ctx
+      @scope = scope
+      @reader_name = reader_name
+      @share = share
+      @proto = proto
+      @disposition = disposition
+    end
+
+    def connect
+      begin      
+        @ctx          = @ctx ? @ctx : Smartcard::PCSC::Context.new(scope)
+        @reader_name  = @reader_name ? @reader_name : @ctx.list_readers(nil)[0]
+        @card         = Smartcard::PCSC::Card.new(@ctx, @reader_name, @share, @proto)  
+      rescue
+        @card.disconnect if @card
+        @ctx.release if @ctx
+        raise $!
+      end
+      
+      stat = @card.status
+      @connected = true
+      @atr = stat[:atr]
+      @t0  = stat[:protocol] == Smartcard::PCSC::PROTOCOL_T0
+      if block_given?
+         yield self
+         disconnect
+      end  
+      @atr
+    end
+
+    def disconnect disposition=Smartcard::PCSC::DISPOSITION_RESET
+      @card.disconnect(disposition) if @card
+      @ctx.disconnect if @ctx
+      @card = nil
+      @connected = false
+    end
+
+    def send bytes = "", send_io_request=nil, recv_io_request=nil
+      send_io = if send_io_request
+                  send_io_request
+                else
+                  self.t0? ? Smartcard::PCSC::IOREQUEST_T0 : Smartcard::PCSC::IOREQUEST_T1
+                end
+
+      recv_io = if recv_io_request
+                  recv_io_request
+                else
+                  self.t0? ? Smartcard::PCSC::IOREQUEST_T0 : Smartcard::PCSC::IOREQUEST_T1
+                end
+      @received = @card.transmit bytes, send_io, recv_io
+    end
+
+    def receive len=0
+      ret = @received
+      @received = nil
+      return ret
+    end
+
   end
 
   class LoggingCard < Card
