@@ -77,6 +77,8 @@ spec = Gem::Specification.new do |s|
 	s.requirements << "none"
 	s.require_path = 'lib'
   s.add_dependency("hexy")
+  s.add_dependency("smartcard", ">= 0.3.1")
+  s.has_rdoc=true
 	s.description = LONG_DESC
 end
 
