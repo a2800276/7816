@@ -40,14 +40,11 @@ module Card
   end #class Card
   
   class PCSCCard < Card
-    def initialize(
-            ctx=nil, 
+    def initialize( ctx=nil, 
             scope=Smartcard::PCSC::SCOPE_SYSTEM,
             reader_name=nil, 
             share=Smartcard::PCSC::SHARE_EXCLUSIVE, 
-            proto=Smartcard::PCSC::PROTOCOL_ANY, 
-           
-    )
+            proto=Smartcard::PCSC::PROTOCOL_ANY)
       @ctx = ctx
       @scope = scope
       @reader_name = reader_name
