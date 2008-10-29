@@ -5,4 +5,5 @@ require 'card'
 require 'atr'
 require 'apdu'
 require 'iso_apdu'
+require 'pcsc_helper'
 

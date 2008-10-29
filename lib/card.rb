@@ -1,3 +1,4 @@
+require 'smartcard'
 module ISO7816
 module Card
   
@@ -40,33 +41,25 @@ module Card
   end #class Card
   
   class PCSCCard < Card
-    def initialize( ctx=nil, 
-            scope=Smartcard::PCSC::SCOPE_SYSTEM,
-            reader_name=nil, 
-            share=Smartcard::PCSC::SHARE_EXCLUSIVE, 
-            proto=Smartcard::PCSC::PROTOCOL_ANY)
-      @ctx = ctx
-      @scope = scope
-      @reader_name = reader_name
-      @share = share
-      @proto = proto
-      @disposition = disposition
+    def initialize()
     end
 
     def connect
-      begin      
-        @ctx          = @ctx ? @ctx : Smartcard::PCSC::Context.new(scope)
-        @reader_name  = @reader_name ? @reader_name : @ctx.list_readers(nil)[0]
-        @card         = Smartcard::PCSC::Card.new(@ctx, @reader_name, @share, @proto)  
+      begin 
+        if @connected
+           puts "!!!!!!!!!!!!!! Already Connected!"
+        else
+           @card = ISO7816::PCSC::Card.new()  
+        end
+        puts @card
       rescue
         @card.disconnect if @card
-        @ctx.release if @ctx
         raise $!
       end
       
       stat = @card.status
       @connected = true
-      @atr = stat[:atr]
+      @atr = @card.atr
       @t0  = stat[:protocol] == Smartcard::PCSC::PROTOCOL_T0
       if block_given?
          yield self
@@ -74,33 +67,30 @@ module Card
       end  
       @atr
     end
+    
+    def reconnect
+      puts "calling reconn! #{ (@card && @connected)}"
+      @card.reconnect if (@card && @connected)
+    end
 
-    def disconnect disposition=Smartcard::PCSC::DISPOSITION_RESET
-      @card.disconnect(disposition) if @card
-      @ctx.disconnect if @ctx
+    def disconnect 
+      @card.disconnect() if @card
       @card = nil
       @connected = false
     end
 
-    def send bytes = "", send_io_request=nil, recv_io_request=nil
-      send_io = if send_io_request
-                  send_io_request
-                else
-                  self.t0? ? Smartcard::PCSC::IOREQUEST_T0 : Smartcard::PCSC::IOREQUEST_T1
-                end
-
-      recv_io = if recv_io_request
-                  recv_io_request
-                else
-                  self.t0? ? Smartcard::PCSC::IOREQUEST_T0 : Smartcard::PCSC::IOREQUEST_T1
-                end
-      @received = @card.transmit bytes, send_io, recv_io
+    def send bytes = ""
+      @received = @card.transmit(bytes)
     end
 
     def receive len=0
       ret = @received
       @received = nil
       return ret
+    end
+
+    def t0?
+      return @t0
     end
 
   end
