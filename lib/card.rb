@@ -47,11 +47,10 @@ module Card
     def connect
       begin 
         if @connected
-           puts "!!!!!!!!!!!!!! Already Connected!"
+           #puts "!!!!!!!!!!!!!! Already Connected!"
         else
            @card = ISO7816::PCSC::Card.new()  
         end
-        puts @card
       rescue
         @card.disconnect if @card
         raise $!
@@ -69,7 +68,7 @@ module Card
     end
     
     def reconnect
-      puts "calling reconn! #{ (@card && @connected)}"
+      #puts "calling reconn! #{ (@card && @connected)}"
       @card.reconnect if (@card && @connected)
     end
 

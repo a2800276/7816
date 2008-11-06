@@ -44,9 +44,9 @@ class Card < Smartcard::PCSC::Card
     @preferred_protocol = preferred_protocol
         
     @status = nil
-    puts @share_mode.class
-    puts @preferred_protocol.class
-    puts ini.class
+    #puts @share_mode.class
+    #puts @preferred_protocol.class
+    #puts ini.class
     super(@share_mode, @preferred_protocol, ini)
   end
 
