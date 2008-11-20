@@ -1,3 +1,5 @@
+autoload :OpenSSL, 'openssl'
+
 module EMV
 module Crypto
   
