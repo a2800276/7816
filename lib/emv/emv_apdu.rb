@@ -43,6 +43,10 @@ end
 class READ_RECORD < ISO7816::APDU::READ_RECORD
 end
 class SELECT < ISO7816::APDU::SELECT
+  def initialize card
+    super
+    self.p1 = "\x04"
+  end
 end
 class VERIFY < ISO7816::APDU::VERIFY
   def initialize card 
