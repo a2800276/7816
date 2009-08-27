@@ -34,18 +34,38 @@ module APDU
 class APDU
   include ISO7816
   # data is the transported data
-  attr_accessor :data, :le, :card, :name
-  attr_reader :cla, :ins, :p1, :p2
+  attr_accessor :card, :name
+  attr_writer :data, :le
+  #attr_reader :cla, :ins, :p1, :p2
 
   def initialize card=nil
-    @cla="\x00"
-    @ins="\x00"
-    @p1= "\x00"
-    @p2= "\x00"
-    @data = ""
-    @le = ""
     @card=card
   end
+
+  def cla
+    @cla || self.class._cla
+  end
+
+  def ins
+    @ins || self.class._ins
+  end
+
+  def p1
+    @p1 || self.class._p1
+  end
+
+  def p2
+    @p2 || self.class._p2 
+  end
+
+  def le
+    @le || self.class._le 
+  end
+
+  def data
+    @data || self.class._data 
+  end
+
   def cla= cla
     @cla = "" << cla
   end
@@ -102,7 +122,7 @@ class APDU
   # Indicate whether this is a case_4 APDU.
   # In case of T=0, le field is NOT sent along for case 4 APDUs
   def case_4?
-    @data!="" && @le!=""
+    data!="" && le!=""
   end
 
   # INS may not have values of 0x60..0x6f and 0x90..0x9f
@@ -117,17 +137,17 @@ class APDU
 
   def to_b
     bytes = "" 
-    bytes << @cla 
-    bytes << @ins
-    bytes << @p1
-    bytes << @p2
+    bytes << cla 
+    bytes << ins
+    bytes << p1
+    bytes << p2
 
-    if @data != "" || @lc != nil
-      bytes << self.lc
-      bytes << @data
+    if data != "" || lc != nil
+      bytes << lc
+      bytes << data
     end
-    if @le != "" && @le != nil
-      bytes << @le
+    if le != "" && le != nil
+      bytes << le
     end
     bytes
   end
@@ -150,7 +170,7 @@ class APDU
     card.send data_to_send 
     
     to_receive = 2 
-    to_receive += @le.unpack("C")[0] if @le && @le != ""
+    to_receive += le.unpack("C")[0] if le && le != ""
     if card.t0? && self.case_4?
       to_receive = 2
     end
@@ -170,30 +190,31 @@ class APDU
   def to_s
 
     line1 = "#{@name}\n|CLA|INS| P1| P2|"
-    line2 = [@cla, @ins, @p1, @p2].map { |b|
+    line2 = [cla, ins, p1, p2].map { |b|
       "| "+ ( b.unpack("H*")[0] )
     }.join+"|"
 
-    data = @data
-    if @data.length > 16
-      data = ""
+    data_ = data
+    if data_.length > 16
+      data_ = ""
     end
-    if @data != "" || @le != ""
-      field_size = data.length*2>"Data".length ? data.length*2 : "Data".length 
-      if data.length >=2
-        pad0 = " "*((data.length*2 - 4)/2) 
+    if data_ != "" || le != ""
+      field_size = data_.length*2>"Data".length ? data_.length*2 : "Data".length 
+      if data_.length >=2
+        pad0 = " "*((data_.length*2 - 4)/2) 
         pad1 = ""
       else
         pad0 = ""
         pad1 = " "   
       end
+      
       #line1 += "| LC|#{pad0}Data#{pad0}| LE|"      
       line1 += ("| LC|% #{field_size}s| LE|" % "Data")     
       #line2 += "| #{b2s(self.lc)}|#{pad1}#{b2s(@data)}#{pad1}| #{@le?b2s(@le):"  "}|"
-      line2 += "| #{b2s(self.lc)}|% #{field_size}s| #{@le?b2s(@le):"  "}|" % b2s(data)
+      line2 += "| #{b2s(lc)}|%#{field_size}s| #{le ? b2s(le) : '  '}|" % b2s(data_)
     end
     txt = "#{line1}\n#{line2}"
-    if @data.length > 16
+    if data.length > 16
       h = Hexy.new @data
       txt << "\n\n"
       txt << h.to_s
@@ -223,6 +244,51 @@ class APDU
     end # lc, data, le
     apdu 
   end #to_apdu
+
+  class << self
+
+    def cla cla
+      @cla=""<<cla
+    end
+    def ins ins
+      @ins=""<<ins
+    end
+    def p1 p1
+      @p1=""<<p1
+    end
+    def p2 p2
+      @p2=""<<p2
+    end
+    def data data
+      @data=""<<data
+    end
+    def le le
+      @le=""<<le
+    end
+
+    def _cla
+      @cla || "\x00"
+    end
+ 
+    def _ins
+      @ins || "\x00"
+    end
+    
+    def _p1
+      @p1 || "\x00"
+    end
+
+    def _p2
+      @p2 || "\x00"
+    end
+
+    def _data
+      @data || ""
+    end
+    def _le
+      @le || ""
+    end
+  end
 end # class APDU 
 
 

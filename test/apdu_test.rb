@@ -108,4 +108,20 @@ class TestAPDU < Test::Unit::TestCase
     assert_equal "\xc0", gr.ins
     assert_equal "\x00", gr.cla
   end
+
+  class DingDong < ISO7816::APDU::APDU
+    cla "\x01"
+    ins "\x02"
+    p1  "\x03"
+    p2  "\x04"
+    le  "\x05"
+  end
+  def test_meta_class
+    assert_equal "\x01", DingDong._cla
+    d = DingDong.new
+    assert_equal "\x01", d.cla
+    assert_equal "\x05", d.le
+    puts d
+  end
+
 end
