@@ -121,7 +121,10 @@ class TestAPDU < Test::Unit::TestCase
     d = DingDong.new
     assert_equal "\x01", d.cla
     assert_equal "\x05", d.le
-    puts d
+    to_strinq=%Q{
+|CLA|INS| P1| P2|| LC|Data| LE|
+| 01| 02| 03| 04||   |    | 05|}
+    assert_equal to_strinq, d.to_s 
   end
 
 end

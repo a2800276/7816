@@ -267,26 +267,26 @@ class APDU
     end
 
     def _cla
-      @cla || "\x00"
+      @cla ||= self == APDU ? "\x00" : superclass._cla
     end
  
     def _ins
-      @ins || "\x00"
+      @ins ||= self == APDU ? "\x00" : superclass._ins
     end
     
     def _p1
-      @p1 || "\x00"
+      @p1 ||= self == APDU ? "\x00" : superclass._p1
     end
 
     def _p2
-      @p2 || "\x00"
+      @p2 ||= self == APDU ? "\x00" : superclass._p22
     end
 
     def _data
-      @data || ""
+      @data ||= self == APDU ? "" : superclass._data
     end
     def _le
-      @le || ""
+      @le ||= self == APDU ? "" : superclass._le
     end
   end
 end # class APDU 

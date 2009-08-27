@@ -3,20 +3,14 @@ module EMV
 module APDU
 
 class EMV_APDU < ISO7816::APDU::APDU
-  def initialize card=nil
-    super
-    @cla="\x80"
-  end
+  cla "\x80"
 end
 
 def APDU.create_class name, ins
 cl=
 %Q(
 class #{name} < EMV_APDU
-  def initialize card= nil
-    super
-    @ins= \"\\x#{ins}\"
-  end
+  ins \"\\x#{ins}\"
 end
 )
       eval(cl)

@@ -99,8 +99,10 @@ class TestAPDU < Test::Unit::TestCase
      test_data.each {|ins_|
       clazz, ins = ins_
       assert_equal ins, clazz._ins
+      assert_equal "\x00", clazz._cla, clazz
       apdu = clazz.new
       assert_equal ins, apdu.ins
+      assert_equal "\x00", apdu.cla
      }
   end
 end
