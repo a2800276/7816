@@ -1,1 +1,4 @@
 pkg/
+.DS_Store
+doc/
+*.swp
