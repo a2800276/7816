@@ -22,6 +22,7 @@ class TestAPDU < Test::Unit::TestCase
     assert_equal "\x00\xa4\x00\x00\x02\x37\x00", s.to_b  
     assert_equal "\n|CLA|INS| P1| P2|| LC|Data| LE|\n| 00| a4| 00| 00|| 02|3700|   |", s.to_s
   end
+
   def test_invalid_ins
     apdu = ISO7816::APDU::APDU.new
     ["\x90", "\x95", "\x9f", "\x60", "\x65", "\x6f"]. each {|inv|
@@ -32,7 +33,6 @@ class TestAPDU < Test::Unit::TestCase
       apdu.ins=inv
       assert_equal true, apdu.ins_valid?
     }
-
   end
 
   def test_basics
