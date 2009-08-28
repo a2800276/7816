@@ -279,7 +279,7 @@ class APDU
     end
 
     def _p2
-      @p2 ||= self == APDU ? "\x00" : superclass._p22
+      @p2 ||= self == APDU ? "\x00" : superclass._p2
     end
 
     def _data

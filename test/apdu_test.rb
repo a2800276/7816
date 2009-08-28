@@ -11,18 +11,16 @@ class TestAPDU < Test::Unit::TestCase
   end
 
   def test_select
-#    s = ISO7816::APDU::SELECT_FILE.new
-#    
-#    assert s.to_b == "\x00\xa4\x00\x00"
-#    assert s.to_b == "\x00\xa4\x00\x00"
-#    assert s.to_s == "|CLA|INS| P1| P2|\n| 00| a4| 00| 00|"
-#    
-#    # add filename
-#    
-#    s.data = "\x37\x00"
-#    assert s.to_b == "\x00\xa4\x00\x00\x02\x37\x00"
-#    assert s.to_s == "|CLA|INS| P1| P2|| LC|Data| LE|\n| 00| a4| 00| 00|| 02|3700|   |"
-     assert true
+    s = ISO7816::APDU::SELECT.new
+    
+    assert_equal "\x00\xa4\x00\x00", s.to_b 
+    assert_equal "\n|CLA|INS| P1| P2|\n| 00| a4| 00| 00|", s.to_s
+    
+    # add filename
+    
+    s.data = "\x37\x00"
+    assert_equal "\x00\xa4\x00\x00\x02\x37\x00", s.to_b  
+    assert_equal "\n|CLA|INS| P1| P2|| LC|Data| LE|\n| 00| a4| 00| 00|| 02|3700|   |", s.to_s
   end
   def test_invalid_ins
     apdu = ISO7816::APDU::APDU.new
