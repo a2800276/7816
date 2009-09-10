@@ -151,10 +151,8 @@ class CPS_APDU < EMV::APDU::EMV_APDU
   end
 end
 class INITIALIZE_UPDATE < CPS_APDU 
-  def initialize card, secure_context 
-    super 
-    @ins="\x50"
-  end
+  ins "\x50"
+  
   def key_version_number= kvn
     self.p1= kvn
   end
@@ -188,10 +186,10 @@ class C_MAC_APDU < CPS_APDU
 end
 
 class EXTERNAL_AUTHENTICATE < C_MAC_APDU 
+  cla "\x84"
+  ins "\x82"
   def initialize card, secure_context
     super
-    @cla="\x84"
-    @ins="\x82"
     self.security_level= secure_context.level if secure_context.level
   end
 
@@ -239,6 +237,7 @@ class EXTERNAL_AUTHENTICATE < C_MAC_APDU
 
 end
 class STORE_DATA < C_MAC_APDU 
+  ins "\xE2"
 
   LAST_STORE_DATA_MASK = 0x80
   ALL_DGI_ENC_MASK =     0x60
@@ -251,7 +250,6 @@ class STORE_DATA < C_MAC_APDU
 
   def initialize card, secure_context, data=""
     super(card, secure_context)
-    @ins= "\xE2"
     #@security_level = secure_context.level
     @cla= "\x84" if @security_level == :enc_and_mac
     self.data= data

@@ -6,23 +6,22 @@ class EMV_APDU < ISO7816::APDU::APDU
   cla "\x80"
 end
 
-def APDU.create_class name, ins
-cl=
-%Q(
-class #{name} < EMV_APDU
-  ins \"\\x#{ins}\"
-end
-)
-      eval(cl)
+def APDU.create_class name, ins, cla="80"
+  cl =  "class #{name} < EMV_APDU\n"
+  cl << "  cla \"\\x#{cla}\"\n" unless cla == "80"
+  cl << "  ins \"\\x#{ins}\"\n"
+  cl << "end"
+
+   eval(cl)
 end
 [
-["APPLICATION_BLOCK", "1E"],
-["APPLICATION_UNBLOCK", "18"],
-["CARD_BLOCK", "16"],
+["APPLICATION_BLOCK", "1E", "84"],
+["APPLICATION_UNBLOCK", "18", "84"],
+["CARD_BLOCK", "16", "84"],
 ["GENERATE_APPLICATION_CRYPTOGRAM", "AE"],
 ["GET_DATA", "CA"],
 ["GET_PROCESSING_OPTIONS", "A8"],
-["PIN_CHANGE_UNBLOCK", "24"],
+["PIN_CHANGE_UNBLOCK", "24", "84"],
 ].each{|entry|
   APDU.create_class *entry
 }
@@ -37,10 +36,7 @@ end
 class READ_RECORD < ISO7816::APDU::READ_RECORD
 end
 class SELECT < ISO7816::APDU::SELECT
-  def initialize card
-    super
-    self.p1 = "\x04"
-  end
+  p1 "\x04"
 end
 class VERIFY < ISO7816::APDU::VERIFY
   def initialize card 

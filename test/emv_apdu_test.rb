@@ -57,22 +57,22 @@ class TestEMV_APDU < Test::Unit::TestCase
 
   def test_generated
     test_data = [
-      [EMV::APDU::APPLICATION_BLOCK, "\x1E"],
-      [EMV::APDU::APPLICATION_UNBLOCK, "\x18"],
-      [EMV::APDU::CARD_BLOCK, "\x16"],
-      [EMV::APDU::GENERATE_APPLICATION_CRYPTOGRAM, "\xAE"],
-      [EMV::APDU::GET_DATA, "\xCA"],
-      [EMV::APDU::GET_PROCESSING_OPTIONS, "\xA8"],
-      [EMV::APDU::PIN_CHANGE_UNBLOCK, "\x24"],
+      [EMV::APDU::APPLICATION_BLOCK, "\x1E", "\x84"],
+      [EMV::APDU::APPLICATION_UNBLOCK, "\x18", "\x84"],
+      [EMV::APDU::CARD_BLOCK, "\x16", "\x84"],
+      [EMV::APDU::GENERATE_APPLICATION_CRYPTOGRAM, "\xAE", "\x80"],
+      [EMV::APDU::GET_DATA, "\xCA", "\x80"],
+      [EMV::APDU::GET_PROCESSING_OPTIONS, "\xA8", "\x80"],
+      [EMV::APDU::PIN_CHANGE_UNBLOCK, "\x24", "\x84"],
     ]
 
     test_data.each {|ins_|
-      clazz, ins = ins_
+      clazz, ins, cla = ins_
       assert_equal ins, clazz._ins
-      assert_equal "\x80", clazz._cla, clazz
+      assert_equal cla, clazz._cla, clazz
       apdu = clazz.new
       assert_equal ins, apdu.ins
-      assert_equal "\x80", apdu.cla
+      assert_equal cla, apdu.cla
     }
 
   end
