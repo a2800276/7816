@@ -2,7 +2,7 @@ require 'tlv'
 
 module EMV
 module Data
-  class InitializeUpdateData < TLV
+  class InitializeUpdateData < TLV::TLV
     b 6*8, "Identifier of the KMC", :kmc_id
     b 4*8, "Chip Serial Number", :csn
     b 8,   "Version Number of Master key (KMC)", :kmc_version

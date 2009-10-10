@@ -1,4 +1,9 @@
 
 = pcsc - ruby interface to pcsc smartcard libs 
 
+== Dependencies
+
+* smartcard : http://github.com/costan/smartcard
+* hexy      : http://github.com/a2800276/hexy
+* tlv       : http://github.com/a2800276/tlv
 	
