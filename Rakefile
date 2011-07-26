@@ -1,5 +1,5 @@
-require "rake/rdoctask"
-require "rake/gempackagetask"
+require "rdoc/task"
+require "rubygems/package_task"
 require "rake/testtask"
 require "rake/clean"
 require "rubygems"
@@ -7,13 +7,13 @@ require "rubygems"
 # Some definitions that you'll need to edit in case you reuse this
 # Rakefile for your own project.
 
-SHORTNAME	='7816'	# this should be the rubyforge project name
-DESC		='ruby smartcard access'
-PKG_VERSION 	='0.0.3'
-LONG_DESC	= <<END_DESC
-  Utilities to provided ISO 7816 smartcard functionality	
+SHORTNAME     ='7816'  # this should be the rubyforge project name
+DESC          ='ruby smartcard access'
+PKG_VERSION   ='0.0.3'
+LONG_DESC  = <<END_DESC
+  Utilities to provided ISO 7816 smartcard functionality  
 END_DESC
-RUBYFORGE_USER	='a2800276'
+RUBYFORGE_USER  ='a2800276'
 
 # Specifies the default task to execute. 
 task  :default => [:test]
@@ -32,32 +32,32 @@ CLEAN << RDOC_DIR << "pkg"
 # task called `rdoc`.
 
 Rake::RDocTask.new do |rd|
-	# Options for documenation generation are specified inside of
-	# this block. For example the following line specifies that the
-	# content of the README file should be the main page of the
-	# documenation.
-	rd.main = "README" 
-	
-	# The following line specifies all the files to extract
-	# documenation from.
-	rd.rdoc_files.include(	"README", "AUTHORS", "LICENSE", "TODO",
-				"CHANGELOG", "bin/**/*", "lib/**/*.rb", 
-				"examples/**/*rb","test/**/*.rb", "doc/*.rdoc")
-	# This one specifies the output directory ...
-	rd.rdoc_dir 	= "doc/html"
+  # Options for documenation generation are specified inside of
+  # this block. For example the following line specifies that the
+  # content of the README file should be the main page of the
+  # documenation.
+  rd.main = "README" 
+  
+  # The following line specifies all the files to extract
+  # documenation from.
+  rd.rdoc_files.include(  "README", "AUTHORS", "LICENSE", "TODO",
+        "CHANGELOG", "bin/**/*", "lib/**/*.rb", 
+        "examples/**/*rb","test/**/*.rb", "doc/*.rdoc")
+  # This one specifies the output directory ...
+  rd.rdoc_dir   = "doc/html"
 
-	# Or the HTML title of the generated documentation set.
-	rd.title 	= "#{SHORTNAME}: #{DESC}"
+  # Or the HTML title of the generated documentation set.
+  rd.title      = "#{SHORTNAME}: #{DESC}"
 
-	# These are options specifiying how source code inlined in the
-	# documentation should be formatted.
-	
-	rd.options 	= ["--line-numbers", "--inline-source"]
+  # These are options specifiying how source code inlined in the
+  # documentation should be formatted.
+  
+  rd.options    = ["--line-numbers"]
 
-	# Check:
-	# `rdoc --help` for more rdoc options
-	# the {rdoc documenation home}[http://www.ruby-doc.org/stdlib/libdoc/rdoc/rdoc/index.html]
-	# or the documentation for the +Rake::RDocTask+ task[http://rake.rubyforge.org/classes/Rake/RDocTask.html]
+  # Check:
+  # `rdoc --help` for more rdoc options
+  # the {rdoc documenation home}[http://www.ruby-doc.org/stdlib/libdoc/rdoc/rdoc/index.html]
+  # or the documentation for the +Rake::RDocTask+ task[http://rake.rubyforge.org/classes/Rake/RDocTask.html]
 end
 
 # The GemPackageTask facilitates getting all your files collected
@@ -66,29 +66,30 @@ end
 
 # First you'll need to assemble a gemspec
 
-PKG_FILES 	= FileList['lib/**/*.rb', 'bin/**/*', 'examples/**/*', '[A-Z]*', 'test/**/*'].to_a
+PKG_FILES   = FileList['lib/**/*.rb', 'bin/**/*', 'examples/**/*', '[A-Z]*', 'test/**/*'].to_a
 
 spec = Gem::Specification.new do |s|
-	s.platform = Gem::Platform::RUBY
-	s.summary = "#{SHORTNAME}: #{DESC}"
-	s.name = SHORTNAME
-	s.version = PKG_VERSION
-	s.files = PKG_FILES
-  s.author = "Tim Becker"
-	s.requirements << "none"
-	s.require_path = 'lib'
+  s.platform  = Gem::Platform::RUBY
+  s.summary   = "#{SHORTNAME}: #{DESC}"
+  s.name      = SHORTNAME
+  s.version   = PKG_VERSION
+  s.files     = PKG_FILES
+  s.author    = "Tim Becker"
+  s.email     = "tim.becker@kuriositaet.de"
+  s.requirements << "none"
+  s.require_path = 'lib'
   s.add_dependency("hexy")
   s.add_dependency("tlv")
-  s.add_dependency("smartcard", ">= 0.3.1")
+  s.add_dependency("smartcard")
   #s.has_rdoc=true
-	s.description = LONG_DESC
+  s.description = LONG_DESC
 end
 
 # Adding a new GemPackageTask adds a task named `package`, which generates
 # packages as gems, tarball and zip archives.
-Rake::GemPackageTask.new(spec) do |pkg|
-	pkg.need_zip = true
-	pkg.need_tar_gz = true
+Gem::PackageTask.new(spec) do |pkg|
+  pkg.need_zip = true
+  pkg.need_tar_gz = true
 end
 
 
@@ -117,11 +118,11 @@ end
 # `test/test*.rb`. The task itself can be run with a call to `rake test`
 
 Rake::TestTask.new do |t| 
-	t.libs << "test" 
-	t.libs << "lib" 
+  t.libs << "test" 
+  t.libs << "lib" 
   t.ruby_opts = ["-rubygems"]
-	t.test_files = FileList['test/*.rb'] 
-	t.verbose = true 
+  t.test_files = FileList['test/*.rb'] 
+  t.verbose = true 
 end
 
 

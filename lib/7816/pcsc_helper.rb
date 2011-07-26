@@ -5,13 +5,13 @@ module PCSC
 # adds default params to Smartcard to make them easier to work with.
 
 class Context < Smartcard::PCSC::Context
-    def initialize scope=Smartcard::PCSC::SCOPE_SYSTEM
-      super
-    end
+  def initialize scope=Smartcard::PCSC::SCOPE_SYSTEM
+    super
+  end
 
-    def list_readers reader_groups=nil
-      super
-    end
+  def list_readers reader_groups=nil
+    super
+  end
 end
 
 class Card < Smartcard::PCSC::Card
