@@ -7,7 +7,7 @@ require "rubygems"
 # Some definitions that you'll need to edit in case you reuse this
 # Rakefile for your own project.
 
-SHORTNAME     ='7816'  # this should be the rubyforge project name
+SHORTNAME     ='iso7816'  # this should be the rubyforge project name
 DESC          ='ruby smartcard access'
 PKG_VERSION   ='0.0.3'
 LONG_DESC  = <<END_DESC
@@ -76,6 +76,7 @@ spec = Gem::Specification.new do |s|
   s.files     = PKG_FILES
   s.author    = "Tim Becker"
   s.email     = "tim.becker@kuriositaet.de"
+  s.homepage  = "https://github.com/a2800276/7816"
   s.requirements << "none"
   s.require_path = 'lib'
   s.add_dependency("hexy")
