@@ -1,25 +1,44 @@
 require 'hexy'
 module ISO7816
-        def ISO7816.b2s bytestr
-          r = bytestr.unpack("H*")[0]
-          r.length > 1 ? r : "  "
-        end
-        def ISO7816.make_binary value
-          value = [value].pack("C") if value.is_a? Numeric
-        end
 
-        def b2s bytestr
-          ISO7816.b2s bytestr
-        end
+  # Utility to convert a string to its hex representation:
+  #
+  #   >  b2s "12J"
+  #   => "31324a"
+  def ISO7816.b2s bytestr
+    r = bytestr.unpack("H*")[0]
+    r.length > 1 ? r : "  "
+  end
 
-        def s2b string
-          ISO7816.s2b string
-        end
 
-        def ISO7816.s2b string
-          string = string.gsub(/\s+/, "")
-          [string].pack("H*") 
-        end
+  # Utility to convert a string to its hex representation:
+  #
+  #   >  b2s "12J"
+  #   => "31324a"
+  def b2s bytestr
+    ISO7816.b2s bytestr
+  end
+  
+  # Utility to convert a string containing hex data
+  # to a string containing the binary data represented 
+  # by the hex.
+  #
+  #   > s2b "3132"
+  #   => "12"
+  def s2b string
+    ISO7816.s2b string
+  end
+
+  # Utility to convert a string containing hex data
+  # to a string containing the binary data represented 
+  # by the hex.
+  #
+  #   > s2b "3132"
+  #   => "12"
+  def ISO7816.s2b string
+    string = string.gsub(/\s+/, "")
+    [string].pack("H*") 
+  end
 
        
 module APDU
@@ -27,9 +46,19 @@ module APDU
 #
 # Models an ISO 7816 APDU (Application Protocol Data Unit) the basic
 # "packet"/unit of communication sent from terminal/cardreader to the
-# card attributes are: CLASS (.cla) INS (.ins), PARAM1 (p1), PARAM2
-# (.p2) DATA (.data) and LE (.le), the length of the data expected in
+# card attributes are: 
+#
+# CLASS (.cla) 
+# INS (.ins)
+# PARAM1 (p1)
+# PARAM2 (.p2) 
+# DATA (.data) and 
+# LE (.le), 
+#
+# the length of the data expected in
 # the response from the card.  
+#
+# 
          
 class APDU
   include ISO7816
@@ -89,7 +118,7 @@ class APDU
 
   # normally don't need to set lc, because it's calculated from the
   # data's length, but for testing it may be necessary to set an 
-  # correct value ...
+  # incorrect value ...
   def lc= val
     if val.is_a? Numeric
       @lc = [val].pack("C")
@@ -186,9 +215,12 @@ class APDU
 
     resp
   end
-
+  
+  # Pretty prints this APDU. Like so:
+  #
+  #   |CLA|INS| P1| P2|| LC|  Data| LE|
+  #   | 80| 00| 00| 00|| 03|313233|   |
   def to_s
-
     line1 = "#{@name}\n|CLA|INS| P1| P2|"
     line2 = [cla, ins, p1, p2].map { |b|
       "| "+ ( b.unpack("H*")[0] )
@@ -198,6 +230,7 @@ class APDU
     if data_.length > 16
       data_ = ""
     end
+
     if data_ != "" || le != ""
       field_size = data_.length*2>"Data".length ? data_.length*2 : "Data".length 
       if data_.length >=2
@@ -208,12 +241,12 @@ class APDU
         pad1 = " "   
       end
       
-      #line1 += "| LC|#{pad0}Data#{pad0}| LE|"      
       line1 += ("| LC|% #{field_size}s| LE|" % "Data")     
-      #line2 += "| #{b2s(self.lc)}|#{pad1}#{b2s(@data)}#{pad1}| #{@le?b2s(@le):"  "}|"
       line2 += "| #{b2s(lc)}|%#{field_size}s| #{le ? b2s(le) : '  '}|" % b2s(data_)
     end
+
     txt = "#{line1}\n#{line2}"
+
     if data.length > 16
       h = Hexy.new @data
       txt << "\n\n"
@@ -222,7 +255,7 @@ class APDU
     txt
   end
   
-  # parses a string of bytes into an APDU object.
+  # Parses a string of bytes into an APDU object.
   def self.to_apdu bytes, sanity=true
     apdu = APDU.new 
     apdu.cla = bytes[0,1]
@@ -246,6 +279,15 @@ class APDU
   end #to_apdu
 
   class << self
+    # This allows you to create new subclasses of APDU with specific values for
+    # the different fields like so:
+    #
+    # class MyAPDU < APDU
+    #   cla 80
+    #   ins 12
+    #   p1  "\xff"
+    #   p2  3
+    # end
 
     def cla cla
       @cla=""<<cla
@@ -265,6 +307,10 @@ class APDU
     def le le
       @le=""<<le
     end
+
+    
+    # Stupid workarounds ...
+
 
     def _cla
       @cla ||= self == APDU ? "\x00" : superclass._cla
@@ -451,7 +497,7 @@ class Response
       when "\x6a"
         sw2_6a
       when "\x6c"
-        "wrong lenght. Exact len: #{b2s(@sw2)}"
+        "wrong length. Exact len: #{b2s(@sw2)}"
       else
         "UNKNOWN : #{b2s(@sw2)}"
     end
