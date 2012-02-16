@@ -3,6 +3,8 @@
 
 == Dependencies
 
+`gem install rdoc` depending on the version of ruby you're using
+
 * smartcard : http://github.com/costan/smartcard
 * hexy      : http://github.com/a2800276/hexy
 * tlv       : http://github.com/a2800276/tlv
